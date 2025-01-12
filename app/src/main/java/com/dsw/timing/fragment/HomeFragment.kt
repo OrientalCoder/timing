@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.dsw.timing.R
@@ -15,6 +15,7 @@ import com.dsw.timing.bean.Panda
 class HomeFragment : Fragment() {
 
     private lateinit var myRecyclerView : RecyclerView
+    private lateinit var img_big : ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,16 +32,23 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         myRecyclerView = view.findViewById(R.id.recycler_main)
+        img_big = view.findViewById(R.id.img_bigsize)
 
-        var items : ArrayList<Panda> = ArrayList<Panda>()
-        initList(items)
-        initList(items)
+        var items : ArrayList<Panda> = ArrayList<Panda>().also {
+            initList(it)
+            initList(it)
+        }
 
-        myRecyclerView.adapter = PandaAdapter(items)
+        myRecyclerView.adapter = PandaAdapter(items, myRecyclerView, img_big)
+
         myRecyclerView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
     }
 
+
+
+
     private fun initList(lists : ArrayList<Panda>) {
+        lists.add(Panda("测试"))
         lists.add(Panda( R.drawable.xihu1, "西湖1"))
         lists.add(Panda( R.drawable.wenjun2, "wenjun1"))
 

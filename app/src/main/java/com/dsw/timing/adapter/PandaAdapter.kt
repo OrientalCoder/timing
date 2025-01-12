@@ -16,7 +16,8 @@ import com.dsw.timing.R
 import com.dsw.timing.ScreenUtils
 import com.dsw.timing.bean.Panda
 
-class PandaAdapter(private val items : List<Panda>) : RecyclerView.Adapter<PandaAdapter.ViewHolder>() {
+class PandaAdapter(private val items: List<Panda>, val recyclerView: RecyclerView, val imgBig: ImageView) : RecyclerView.Adapter<PandaAdapter.ViewHolder>() {
+    val TAG: String = "PandaAdapter"
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textView : TextView = itemView.findViewById(R.id.txt_panda)
@@ -31,15 +32,15 @@ class PandaAdapter(private val items : List<Panda>) : RecyclerView.Adapter<Panda
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val currentItem = items[position]
-        holder.textView.text = currentItem.name
-        //holder.img.setImageResource(currentItem.img)
+        //currentItem.img?.let { holder.img.setImageResource(it) }
         Glide.with(holder.img.context)
             .load(currentItem.img)
             .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
             .into(object : CustomTarget<Drawable>() {
                 override fun onLoadStarted(placeholder: Drawable?) {
+                    Log.d(TAG, "onLoadStarted")
                     super.onLoadStarted(placeholder)
-                    holder.img.setImageDrawable(placeholder)
+                    //holder.img.setImageDrawable(placeholder)
                 }
 
                 override fun onLoadCleared(placeholder: Drawable?) {
@@ -52,16 +53,34 @@ class PandaAdapter(private val items : List<Panda>) : RecyclerView.Adapter<Panda
                     val imageHeight: Float = resource.intrinsicHeight.toFloat()
                     val imageWidth : Float = resource.intrinsicWidth.toFloat()
 
+                    val layoutParams = holder.itemView.layoutParams .apply {
+                        this.width = ScreenUtils.getScreenWidth(holder.img.context) / 2 - 10
+                        this.height = ((imageHeight / imageWidth) * this.width).toInt() + 10
+                    }
 
-                    val layoutParams = holder.itemView.layoutParams
-                    layoutParams.width = ScreenUtils.getScreenWidth(holder.img.context) / 2 - 10
-                    layoutParams.height = ((imageHeight / imageWidth) * layoutParams.width).toInt()
-                    currentItem.height = layoutParams.height
                     Log.d("dsw", "img height: " + layoutParams.height)
-                    holder.itemView.layoutParams = layoutParams
+                    holder.img.also {
+                        it.setImageDrawable(resource)
+                        it.scaleType = ImageView.ScaleType.FIT_CENTER
+                        it.layoutParams.height = layoutParams.height
+                        it.setOnClickListener{
+                            recyclerView.visibility = View.GONE
+                            imgBig.apply {
+                                this.setImageDrawable(resource)
+                                this.scaleType = ImageView.ScaleType.FIT_CENTER
+                                this.visibility = View.VISIBLE
+                                this.setOnClickListener() {
+                                    this.visibility = View.GONE
+                                    recyclerView.visibility = View.VISIBLE
+                            }
 
-                    holder.img.setImageDrawable(resource)
-                    holder.img.scaleType = ImageView.ScaleType.FIT_CENTER
+                            }
+                        }
+                    }
+
+
+                    layoutParams.height += holder.textView.height
+                    holder.textView.text = currentItem.name
                 }
 
 
@@ -70,6 +89,12 @@ class PandaAdapter(private val items : List<Panda>) : RecyclerView.Adapter<Panda
 
     override fun getItemCount(): Int {
         return items.count()
+    }
+
+    open class OnImgItemClick(var imgId : ImageView) : View.OnClickListener {
+        override fun onClick(v: View?) {
+        }
+
     }
 
 

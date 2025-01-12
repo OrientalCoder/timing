@@ -13,8 +13,7 @@
         android:id="@+id/txt_panda"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/image_panda"
-        android:visibility="gone"
+        android:layout_below="@+id/image_panda"
         android:layout_marginLeft="20dp"/>
 
 </RelativeLayout>
