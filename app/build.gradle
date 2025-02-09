@@ -17,6 +17,16 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        debug {
+            storeFile file("E:/keystore/timing-debug.jks")
+            storePassword "timing"
+            keyAlias "key0"
+            keyPassword "timing"
+
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -26,6 +36,12 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
     }
     kotlinOptions {
         jvmTarget = '11'
@@ -45,5 +61,7 @@ dependencies {
     implementation "com.github.bumptech.glide:glide:4.13.0"
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0' // JSON 转换器
+    implementation 'com.amap.api:map2d:latest.integration'
+    implementation 'com.amap.api:location:latest.integration'
     annotationProcessor "com.github.bumptech.glide:compiler:4.13.0"
 }
