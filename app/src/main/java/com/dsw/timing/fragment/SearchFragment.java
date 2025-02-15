@@ -1,7 +1,7 @@
 package com.dsw.timing.fragment;
 
-import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,10 +19,13 @@ import com.amap.api.maps2d.AMap;
 import com.amap.api.maps2d.CameraUpdateFactory;
 import com.amap.api.maps2d.LocationSource;
 import com.amap.api.maps2d.MapView;
-import com.amap.api.maps2d.MapsInitializer;
 import com.amap.api.maps2d.model.LatLng;
+import com.amap.api.maps2d.model.MarkerOptions;
 import com.amap.api.maps2d.model.MyLocationStyle;
 import com.dsw.timing.R;
+import com.dsw.timing.bean.Location;
+import com.dsw.timing.bean.LocationKotlin;
+import com.dsw.timing.network.LocationReportManager;
 
 public class SearchFragment extends Fragment implements AMap.OnMyLocationChangeListener {
 
@@ -35,6 +38,12 @@ public class SearchFragment extends Fragment implements AMap.OnMyLocationChangeL
     private LocationSource.OnLocationChangedListener mListener;
 
     private MyLocationStyle myLocationStyle;
+
+    private long count = 0L;
+
+    private Handler mHandler = new Handler();
+
+    private Runnable mRunnable;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -73,13 +82,39 @@ public class SearchFragment extends Fragment implements AMap.OnMyLocationChangeL
                     LatLng latLng = new LatLng(latitude, longitude);
                     aMap.moveCamera(CameraUpdateFactory.changeLatLng(latLng));
                     //aMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                    try {
+                        if(count%5==0) {
+                            Location location = new Location(longitude, latitude, System.currentTimeMillis() / 1000);
+                            LocationReportManager.Companion.getInstance().reportLocation(location, getContext());
+                        }
+                    } catch (Exception e) {
+                        Log.e("dsw", e.getMessage());
+                    }
 
+
+                    count++;
                     Log.d("Amap", "定位成功：" + aMapLocation.getCity());
                 } else {
                     Log.e("Amap", "定位失败：" + aMapLocation.getErrorInfo());
                 }
             }
         });
+
+        mRunnable = new Runnable() {
+            @Override
+            public void run() {
+                LocationReportManager.Companion.getInstance().getRecentLocation(getContext(), new GetLocationMarkerListener() {
+                    @Override
+                    public void onGetLocation(Location location) {
+                        drawMarker(new LatLng(location.getLatitude(), location.getLongitude()));
+                    }
+                });
+
+                mHandler.postDelayed(mRunnable, 25000);
+            }
+        };
+
+        mHandler.postDelayed(mRunnable, 25000);
     }
     @Nullable
     @Override
@@ -110,6 +145,8 @@ public class SearchFragment extends Fragment implements AMap.OnMyLocationChangeL
         aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
 
         mapLocationClient.startLocation();
+
+       // drawMarker(new LatLng(30.2879178006409, 120.021592666032));
     }
 
 
@@ -130,14 +167,23 @@ public class SearchFragment extends Fragment implements AMap.OnMyLocationChangeL
     public void onDestroy() {
         super.onDestroy();
         mapView.onDestroy();
-        if(mapLocationClient!=null) {
+        mHandler.removeCallbacks(mRunnable);
+        if (mapLocationClient != null) {
             mapLocationClient.onDestroy();
         }
 
     }
 
     @Override
-    public void onMyLocationChange(Location location) {
+    public void onMyLocationChange(android.location.Location location) {
 
+    }
+
+    private void drawMarker(LatLng latLng) {
+        aMap.addMarker(new MarkerOptions().position(latLng).snippet("default"));
+    }
+
+    public interface GetLocationMarkerListener {
+        void onGetLocation(Location location);
     }
 }
